@@ -15,10 +15,12 @@ import {
   DollarSign,
   BarChart3,
   Upload,
-  Settings
+  Settings,
+  Download
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from "recharts";
 import { gtfsDataService } from "@/services/gtfsDataService";
+import { useToast } from "@/hooks/use-toast";
 
 const performanceData = [
   { metric: "On-Time Performance", value: 94.2, change: +2.1 },
@@ -35,6 +37,7 @@ export const DashboardOverview = () => {
     onTimePerformance: 0,
     energySavings: 0
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -49,6 +52,59 @@ export const DashboardOverview = () => {
 
     loadData();
   }, []);
+
+  const handleGenerateReport = () => {
+    // Generate a comprehensive report
+    const reportData = {
+      date: new Date().toISOString().split('T')[0],
+      systemStats,
+      passengerData,
+      performanceData
+    };
+    
+    const jsonString = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `KMRL_Daily_Report_${reportData.date}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Report Generated Successfully",
+      description: "Daily operations report has been downloaded.",
+    });
+  };
+
+  const handleGenerateAISchedule = async () => {
+    toast({
+      title: "Generating AI Schedule",
+      description: "AI is processing current data to optimize schedules...",
+    });
+
+    // Simulate AI processing time
+    setTimeout(async () => {
+      try {
+        await gtfsDataService.loadGTFSData();
+        setPassengerData(gtfsDataService.getProcessedPassengerData());
+        setSystemStats(gtfsDataService.getSystemStats());
+        
+        toast({
+          title: "AI Schedule Generated",
+          description: "New optimized schedule has been created successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Schedule Generation Failed",
+          description: "Unable to generate AI schedule. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }, 2000);
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -64,7 +120,10 @@ export const DashboardOverview = () => {
             <Activity className="h-3 w-3 text-success" />
             AI Active
           </Badge>
-          <Button className="bg-gradient-primary">Generate Report</Button>
+          <Button className="bg-gradient-primary" onClick={handleGenerateReport}>
+            <Download className="h-4 w-4 mr-2" />
+            Generate Report
+          </Button>
         </div>
       </div>
 
@@ -249,7 +308,10 @@ export const DashboardOverview = () => {
               <AlertTriangle className="h-4 w-4" />
               View Live Alerts
             </Button>
-            <Button className="w-full justify-start gap-2 bg-gradient-primary text-white">
+            <Button 
+              className="w-full justify-start gap-2 bg-gradient-primary text-white"
+              onClick={handleGenerateAISchedule}
+            >
               <BarChart3 className="h-4 w-4" />
               Generate AI Schedule
             </Button>

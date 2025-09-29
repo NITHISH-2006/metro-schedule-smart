@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line } from "recharts";
 import { gtfsDataService } from "@/services/gtfsDataService";
+import { useToast } from "@/hooks/use-toast";
 
 const optimizationMetrics = [
   { metric: "Energy Efficiency", current: 87.5, target: 85, improvement: "+2.5%" },
@@ -29,6 +30,7 @@ const optimizationMetrics = [
 
 export const AISchedulingOutput = () => {
   const [scheduleData, setScheduleData] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,6 +44,82 @@ export const AISchedulingOutput = () => {
 
     loadData();
   }, []);
+
+  const handleExportSchedule = () => {
+    const csvContent = [
+      ['Time', 'Blue Line Trains', 'Green Line Trains', 'Passenger Demand', 'AI Prediction'],
+      ...scheduleData.map(row => [row.time, row.blueLine, row.greenLine, row.demand, row.predicted])
+    ];
+    
+    const csvString = csvContent.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `KMRL_AI_Schedule_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Schedule Exported",
+      description: "AI-generated schedule has been downloaded as CSV.",
+    });
+  };
+
+  const handleRegenerate = async () => {
+    toast({
+      title: "Regenerating AI Schedule",
+      description: "Processing latest data to update optimization...",
+    });
+
+    setTimeout(async () => {
+      try {
+        await gtfsDataService.loadGTFSData();
+        setScheduleData(gtfsDataService.getProcessedScheduleData());
+        
+        toast({
+          title: "Schedule Regenerated",
+          description: "AI schedule updated with latest optimization parameters.",
+        });
+      } catch (error) {
+        toast({
+          title: "Regeneration Failed",
+          description: "Unable to regenerate schedule. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }, 1500);
+  };
+
+  const handleExportCSV = () => {
+    const detailedSchedule = [
+      ['Time Slot', 'Blue Line', 'Green Line', 'Frequency (min)', 'Expected Load', 'Status'],
+      ['05:30-06:00', '2', '1', '15', 'Low', 'optimal'],
+      ['06:00-06:30', '4', '2', '8', 'Medium', 'optimal'],
+      ['06:30-07:00', '6', '3', '5', 'High', 'optimal'],
+      ['07:00-07:30', '8', '4', '4', 'Peak', 'critical'],
+      ['07:30-08:00', '8', '4', '4', 'Peak', 'critical'],
+      ['08:00-08:30', '10', '5', '3', 'Max', 'attention']
+    ];
+    
+    const csvString = detailedSchedule.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `KMRL_Detailed_Schedule_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Detailed Schedule Exported",
+      description: "Complete schedule data exported to CSV file.",
+    });
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -57,11 +135,11 @@ export const AISchedulingOutput = () => {
             <Brain className="h-3 w-3 text-primary" />
             AI Model: v2.4.1
           </Badge>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleRegenerate}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Regenerate
           </Button>
-          <Button className="bg-gradient-primary">
+          <Button className="bg-gradient-primary" onClick={handleExportSchedule}>
             <Download className="h-4 w-4 mr-2" />
             Export Schedule
           </Button>
@@ -211,7 +289,7 @@ export const AISchedulingOutput = () => {
               </CardTitle>
               <CardDescription>Detailed train timings and operational parameters</CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExportCSV}>
               <Download className="h-4 w-4 mr-1" />
               Export CSV
             </Button>
