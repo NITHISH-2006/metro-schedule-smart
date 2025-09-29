@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,17 +18,7 @@ import {
   Activity
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line } from "recharts";
-
-const scheduleData = [
-  { time: "05:30", blueLine: 2, greenLine: 1, demand: 450 },
-  { time: "06:00", blueLine: 4, greenLine: 2, demand: 1200 },
-  { time: "06:30", blueLine: 6, greenLine: 3, demand: 2800 },
-  { time: "07:00", blueLine: 8, greenLine: 4, demand: 4200 },
-  { time: "07:30", blueLine: 8, greenLine: 4, demand: 4800 },
-  { time: "08:00", blueLine: 10, greenLine: 5, demand: 5200 },
-  { time: "08:30", blueLine: 8, greenLine: 4, demand: 3800 },
-  { time: "09:00", blueLine: 6, greenLine: 3, demand: 2200 },
-];
+import { gtfsDataService } from "@/services/gtfsDataService";
 
 const optimizationMetrics = [
   { metric: "Energy Efficiency", current: 87.5, target: 85, improvement: "+2.5%" },
@@ -37,6 +28,20 @@ const optimizationMetrics = [
 ];
 
 export const AISchedulingOutput = () => {
+  const [scheduleData, setScheduleData] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await gtfsDataService.loadGTFSData();
+        setScheduleData(gtfsDataService.getProcessedScheduleData());
+      } catch (error) {
+        console.error('Error loading schedule data:', error);
+      }
+    };
+
+    loadData();
+  }, []);
   return (
     <div className="space-y-6">
       {/* Header */}

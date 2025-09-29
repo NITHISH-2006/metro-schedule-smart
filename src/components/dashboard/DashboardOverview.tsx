@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,15 +18,7 @@ import {
   Settings
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from "recharts";
-
-const passengerData = [
-  { time: "06:00", passengers: 1200, predicted: 1150 },
-  { time: "07:00", passengers: 2800, predicted: 2900 },
-  { time: "08:00", passengers: 4200, predicted: 4100 },
-  { time: "09:00", passengers: 3800, predicted: 3750 },
-  { time: "10:00", passengers: 2200, predicted: 2300 },
-  { time: "11:00", passengers: 1800, predicted: 1850 },
-];
+import { gtfsDataService } from "@/services/gtfsDataService";
 
 const performanceData = [
   { metric: "On-Time Performance", value: 94.2, change: +2.1 },
@@ -35,6 +28,27 @@ const performanceData = [
 ];
 
 export const DashboardOverview = () => {
+  const [passengerData, setPassengerData] = useState([]);
+  const [systemStats, setSystemStats] = useState({
+    totalPassengers: "0",
+    activeTrains: 0,
+    onTimePerformance: 0,
+    energySavings: 0
+  });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await gtfsDataService.loadGTFSData();
+        setPassengerData(gtfsDataService.getProcessedPassengerData());
+        setSystemStats(gtfsDataService.getSystemStats());
+      } catch (error) {
+        console.error('Error loading GTFS data:', error);
+      }
+    };
+
+    loadData();
+  }, []);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -61,7 +75,7 @@ export const DashboardOverview = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Passengers</p>
-                <p className="text-2xl font-bold text-foreground">42,847</p>
+                <p className="text-2xl font-bold text-foreground">{systemStats.totalPassengers}</p>
                 <p className="text-xs text-success flex items-center gap-1 mt-1">
                   <TrendingUp className="h-3 w-3" />
                   +12.5% vs yesterday
@@ -79,7 +93,7 @@ export const DashboardOverview = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Trains</p>
-                <p className="text-2xl font-bold text-foreground">18 / 24</p>
+                <p className="text-2xl font-bold text-foreground">{systemStats.activeTrains} / 24</p>
                 <p className="text-xs text-warning flex items-center gap-1 mt-1">
                   <Clock className="h-3 w-3" />
                   2 scheduled maintenance
@@ -97,7 +111,7 @@ export const DashboardOverview = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">On-Time Performance</p>
-                <p className="text-2xl font-bold text-foreground">94.2%</p>
+                <p className="text-2xl font-bold text-foreground">{systemStats.onTimePerformance}%</p>
                 <p className="text-xs text-success flex items-center gap-1 mt-1">
                   <CheckCircle className="h-3 w-3" />
                   Above target (90%)
@@ -115,7 +129,7 @@ export const DashboardOverview = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Energy Savings</p>
-                <p className="text-2xl font-bold text-foreground">₹2.4L</p>
+                <p className="text-2xl font-bold text-foreground">₹{systemStats.energySavings}%</p>
                 <p className="text-xs text-success flex items-center gap-1 mt-1">
                   <DollarSign className="h-3 w-3" />
                   This week

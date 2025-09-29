@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
-import { PassengerDemandInput } from "@/components/dashboard/PassengerDemandInput";
+import { GTFSDataManager } from "@/components/dashboard/GTFSDataManager";
 import { AISchedulingOutput } from "@/components/dashboard/AISchedulingOutput";
 import { GanttChartView } from "@/components/dashboard/GanttChartView";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
@@ -16,7 +16,7 @@ const Dashboard = () => {
       case "overview":
         return <DashboardOverview />;
       case "demand-input":
-        return <PassengerDemandInput />;
+        return <GTFSDataManager />;
       case "ai-scheduling":
         return <AISchedulingOutput />;
       case "gantt-chart":
