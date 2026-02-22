@@ -26,7 +26,10 @@ Built specifically for the Kochi Metro Rail (KMRL) network with real station dat
 
 ## 🖥️ Live Demo
 
-**[→ View Live Dashboard]()**
+**[→ View Live Dashboard](https://metro-schedule-smart.vercel.app)**
+
+USERNAME : Nithish C
+PASSWORD : 1234
 
 ---
 
