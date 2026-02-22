@@ -146,16 +146,6 @@ npm run preview
 
 ---
 
-## 📸 Screenshots
-
-| Dashboard | Schedule View | Analytics |
-|---|---|---|
-| *(Add screenshot)* | *(Add screenshot)* | *(Add screenshot)* |
-
-> **Tip:** Take screenshots using your browser's full-page capture and drop them into a `/docs/screenshots/` folder, then reference them above.
-
----
-
 ## 🧠 System Design
 
 ```
